@@ -2,11 +2,11 @@
 #define DATA_H
 
 enum STUDY_FIELD {
-    INFORMATYKA,
-    MATEMATYKA,
-    FIZYKA,
-    CHEMIA,
-    INNE
+    INFORMATICS,
+    MATHEMATICS,
+    PHYSICS,
+    CHEMISTRY,
+    OTHER
 };
 
 extern const char* studyFieldNames[];
