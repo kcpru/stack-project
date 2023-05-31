@@ -1,10 +1,7 @@
 #include "interface.h"
-#include "stack.h"
-#include <stdio.h>
 
 int main() {
-	initStack();
-	stackInterface();
+    stackInterface();
 
-	return 0;
+    return 0;
 }

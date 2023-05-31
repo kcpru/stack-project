@@ -1,6 +1,6 @@
 #include <stdio.h>
+#include "error.h"
 
-// Obsluga bledow i komunikatow
 void handleErrorMessage(const char* message) {
-	printf("Error: %s\n", message);
+    printf("Blad: %s\n", message);
 }

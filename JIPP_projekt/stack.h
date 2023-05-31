@@ -1,34 +1,24 @@
 #ifndef STACK_H
 #define STACK_H
 
+#include <stdio.h>
+
+typedef struct StackNode {
+	void* data;
+	struct StackNode* next;
+} StackNode;
+
 typedef struct {
-	char* surname;
-	int birthYear;
-	char* studyField;
-} MY_STUDENT;
+	StackNode* top;
+} Stack;
 
-// Inicjalizuje stos
-void initStack();
+void initStack(Stack* stack);
+void freeStack(Stack* stack);
+void push(Stack* stack, void* data);
+void* pop(Stack* stack);
+void* find(Stack* stack, int (*compare)(void*, void*), void* target);
+void printStack(Stack* stack, void (*print)(void*));
+void saveStackToFile(Stack* stack, const char* filename, void (*saveData)(void* data, FILE* file));
+void loadStackFromFile(Stack* stack, const char* filename, void* (*loadData)(FILE* file));
 
-// Zwolnienie stosu
-void freeStack();
-
-// Dodaje nowy element na stos
-void push(MY_STUDENT* student);
-
-// Pobiera pierwszy element ze stosu
-MY_STUDENT* pop();
-
-// Odnajduje podany element na stosie
-MY_STUDENT* find(const char* surname);
-
-// Zapisuje wszystkie elementy stosu do pliku binarnego
-void saveStack(MY_STUDENT* student, const char* filename);
-
-// Odczytuje elementy stosu z pliku binarnego
-MY_STUDENT* loadStack(const char* filename);
-
-// Wyprowadza elementy stosu na monitor
-void printStack();
-
-#endif  // STACK_H
+#endif

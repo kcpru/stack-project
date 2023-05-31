@@ -1,128 +1,122 @@
-#include "interface.h"
-#include "student.h"
-#include "stack.h"
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "interface.h"
+#include "data.h"
+#include "stack.h"
+#include "error.h"
 
-#pragma warning(disable : 4996)
+#pragma warning(disable: 4996)
 
-#define MAX_NAME_LENGTH 64
-
-#define COLOR_RED     "\x1b[31m"
-#define COLOR_GREEN   "\x1b[32m"
-#define COLOR_YELLOW  "\x1b[33m"
-#define COLOR_BLUE    "\x1b[34m"
-#define COLOR_MAGENTA "\x1b[35m"
-#define COLOR_CYAN    "\x1b[36m"
-#define COLOR_RESET   "\x1b[0m"
-
-// Funkcja interfejsu do wywolywania funkcji
-void stackInterface() {
-	char choice;
-	char surname[MAX_NAME_LENGTH];
-	MY_STUDENT* student = NULL;
-
-	while (1) {
-		printMenu();
-		printf("Enter your choice: ");
-		scanf(" %c", &choice);
-
-		switch (choice) {
-		case 'a':
-			student = (MY_STUDENT*)malloc(sizeof(MY_STUDENT));
-
-			printf("Enter surname: ");
-			scanf("%s", surname);
-			student->surname = strdup(surname);
-
-			printf("Enter birth year: ");
-			scanf("%d", &(student->birthYear));
-
-			printf("Enter study field: ");
-			scanf("%s", surname);
-			student->studyField = strdup(surname);
-
-			push(student);
-			printf("Student added to the stack.\n\n");
-			break;
-
-		case 'r':
-			student = pop();
-			if (student != NULL) {
-				printf("Removed student:\n");
-				printf("Surname: %s\n", student->surname);
-				printf("Birth year: %d\n", student->birthYear);
-				printf("Study field: %s\n\n", student->studyField);
-				freeStudent(student);
-			}
-			break;
-
-		case 'f':
-			printf("Enter surname to find: ");
-			scanf("%s", surname);
-			student = find(surname);
-			if (student != NULL) {
-				printf("Found student:\n");
-				printf("Surname: %s\n", student->surname);
-				printf("Birth year: %d\n", student->birthYear);
-				printf("Study field: %s\n\n", student->studyField);
-			}
-			else {
-				printf("Student not found.\n\n");
-			}
-			break;
-
-		case 's':
-			printf("Enter filename to save stack: ");
-			scanf("%s", surname);
-			if (student != NULL) {
-				saveStack(student, surname);
-				printf("Stack saved to file.\n\n");
-			}
-			else {
-				printf("No student to save.\n\n");
-			}
-			break;
-
-		case 'l':
-			printf("Enter filename to load stack: ");
-			scanf("%s", surname);
-			if (loadStack(surname)) {
-				printf("Stack loaded from file.\n\n");
-			}
-			break;
-
-		case 'p':
-			printStack();
-			break;
-
-		case 'c':
-			freeStack();
-			printf("Stack cleared.\n\n");
-			break;
-
-		case 'e':
-			printf("Exiting the program.\n");
-			freeStack();
-			return;
-
-		default:
-			printf("Invalid choice. Please try again.\n\n");
-			break;
-		}
-	}
+void printMenu() {
+    printf("\033[47;30m  ====== MENU ======  \033[0m\n"); 
+    printf("1. Dodaj element do stosu\n");
+    printf("2. Usun element ze stosu\n");
+    printf("3. Znajdz element na stosie\n");
+    printf("4. Wyswietl zawartosc stosu\n");
+    printf("5. Zapisz zawartosc stosu do pliku\n");
+    printf("6. Wczytaj zawartosc stosu z pliku\n");
+    printf("\033[31m0. Wyjscie\033[0m\n");  
+    printf("==================\n");
 }
 
-// Wyprowadza menu interfejsu na monitor
-void printMenu() {
-	printf("Stack Menu:\n");
-	printf("[a] Add student to stack\n");
-	printf("[r] Remove student from stack\n");
-	printf("[f] Find student on stack\n");
-	printf("[s] Save stack to file\n");
-	printf("[l] Load stack from file\n");
-	printf("[p] Print stack elements\n");
-	printf("[c] Clear stack\n");
-	printf(COLOR_RED "[e] Exit\n" COLOR_RESET);
+
+void stackInterface() {
+    Stack stack;
+    initStack(&stack);
+
+    int choice;
+    do {
+        printMenu();
+        printf("Wybierz opcje: ");
+        scanf("%d", &choice);
+        getchar();
+
+        switch (choice) {
+        case 1: {
+            char name[100];
+            int birthYear;
+            char studyField[100];
+
+            printf("Podaj nazwisko studenta: ");
+            fgets(name, sizeof(name), stdin);
+            name[strcspn(name, "\n")] = '\0';
+
+            printf("Podaj rok urodzenia: ");
+            scanf("%d", &birthYear);
+            getchar();
+
+            printf("Podaj kierunek studiow: ");
+            fgets(studyField, sizeof(studyField), stdin);
+            studyField[strcspn(studyField, "\n")] = '\0';
+
+            MY_STUDENT* student = createStudent(name, birthYear, studyField);
+            if (student != NULL) {
+                push(&stack, student);
+                printf("Dodano studenta na stos.\n");
+            }
+            break;
+        }
+        case 2: {
+            MY_STUDENT* student = (MY_STUDENT*)pop(&stack);
+            if (student != NULL) {
+                destroyStudent(student);
+                printf("Usunieto studenta ze stosu.\n");
+            }
+            break;
+        }
+        case 3: {
+            char name[100];
+            printf("Podaj nazwisko studenta do wyszukania: ");
+            fgets(name, sizeof(name), stdin);
+            name[strcspn(name, "\n")] = '\0';
+
+            MY_STUDENT targetStudent;
+            targetStudent.name = name;
+
+            MY_STUDENT* foundStudent = (MY_STUDENT*)find(&stack, compareStudentsByField, &targetStudent);
+            if (foundStudent != NULL) {
+                printf("Znaleziono studenta na stosie:\n");
+                printf("Nazwisko: %s\n", foundStudent->name);
+                printf("Rok urodzenia: %d\n", foundStudent->birthYear);
+                printf("Kierunek studiow: %s\n", foundStudent->studyField);
+            }
+            else {
+                printf("Nie znaleziono studenta na stosie.\n");
+            }
+            break;
+        }
+        case 4: {
+            printf("Zawartosc stosu:\n");
+            printStack(&stack, (void (*)(void*))printStudent);
+            break;
+        }
+        case 5: {
+            char filename[100];
+            printf("Podaj nazwe pliku do zapisu: ");
+            fgets(filename, sizeof(filename), stdin);
+            filename[strcspn(filename, "\n")] = '\0';
+            saveStackToFile(&stack, filename, saveStudent);
+            break;
+        }
+        case 6: {
+            char filename[100];
+            printf("Podaj nazwe pliku do wczytania: ");
+            fgets(filename, sizeof(filename), stdin);
+            filename[strcspn(filename, "\n")] = '\0';
+            loadStackFromFile(&stack, filename, loadStudent);
+            break;
+        }
+        case 0:
+            printf("Program zakonczony.\n");
+            break;
+        default:
+            printf("Nieprawidlowy wybor. Sprobuj ponownie.\n");
+            break;
+        }
+
+        printf("\n");
+    } while (choice != 0);
+
+    freeStack(&stack);
 }

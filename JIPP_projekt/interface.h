@@ -1,10 +1,9 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
-// Wyprowadza menu interfejsu na monitor
-void printMenu();
+#include "stack.h"
 
-// Uruchamia interfejs stosu
+void printMenu();
 void stackInterface();
 
-#endif  // INTERFACE_H
+#endif

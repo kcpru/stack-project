@@ -1,138 +1,119 @@
-#include "stack.h"
-#include "error.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include "stack.h"
+#include "error.h"
 
-#pragma warning(disable : 4996)
+#pragma warning(disable: 4996)
 
-#define MAX_NAME_LENGTH 64
-
-typedef struct StackNode {
-	MY_STUDENT* student;
-	struct StackNode* next;
-} StackNode;
-
-static StackNode* top = NULL;
-
-// Inicjowanie stosu
-void initStack() {
-	top = NULL;
+void initStack(Stack* stack) {
+    stack->top = NULL;
 }
 
-// Zwolnienie stosu
-void freeStack() {
-	StackNode* temp;
-	while (top != NULL) {
-		temp = top;
-		top = top->next;
-		free(temp->student->surname);
-		free(temp->student->studyField);
-		free(temp->student);
-		free(temp);
-	}
+void freeStack(Stack* stack) {
+    while (stack->top != NULL) {
+        StackNode* temp = stack->top;
+        stack->top = stack->top->next;
+        free(temp->data);
+        free(temp);
+    }
 }
 
-// Dodawanie nowego elementu
-void push(MY_STUDENT* student) {
-	StackNode* newNode = (StackNode*)malloc(sizeof(StackNode));
-	if (newNode == NULL) {
-		handleErrorMessage("Memory allocation failed");
-		return;
-	}
-
-	newNode->student = student;
-	newNode->next = top;
-	top = newNode;
+void push(Stack* stack, void* data) {
+    StackNode* newNode = (StackNode*)malloc(sizeof(StackNode));
+    if (newNode == NULL) {
+        handleErrorMessage("Nie mozna zaalokowac pamieci dla nowego elementu stosu");
+        return;
+    }
+    newNode->data = data;
+    newNode->next = stack->top;
+    stack->top = newNode;
 }
 
-// Pobieranie pierwszego elementu
-MY_STUDENT* pop() {
-	if (top == NULL) {
-		handleErrorMessage("Stack is empty");
-		return NULL;
-	}
-
-	StackNode* temp = top;
-	MY_STUDENT* student = temp->student;
-	top = top->next;
-	free(temp);
-
-	return student;
+void* pop(Stack* stack) {
+    if (stack->top == NULL) {
+        handleErrorMessage("Stos jest pusty");
+        return NULL;
+    }
+    StackNode* topNode = stack->top;
+    void* data = topNode->data;
+    stack->top = topNode->next;
+    free(topNode);
+    return data;
 }
 
-// Odnalezienie podanego elementu na stosie
-MY_STUDENT* find(const char* surname) {
-	StackNode* current = top;
-	while (current != NULL) {
-		if (strcmp(current->student->surname, surname) == 0) {
-			return current->student;
-		}
-		current = current->next;
-	}
-
-	return NULL;
+void* find(Stack* stack, int (*compare)(void*, void*), void* target) {
+    StackNode* currentNode = stack->top;
+    while (currentNode != NULL) {
+        if (compare(currentNode->data, target) == 0) {
+            return currentNode->data;
+        }
+        currentNode = currentNode->next;
+    }
+    return NULL;
 }
 
-// Zapis wszystkich elementow stosu na dysk w plik binarny
-void saveStack(MY_STUDENT* student, const char* filename) {
-	FILE* file = fopen(filename, "wb");
-	if (file == NULL) {
-		handleErrorMessage("Failed to open the file for writing");
-		return;
-	}
-
-	fwrite(student, sizeof(MY_STUDENT), 1, file);
-	fwrite(student->surname, sizeof(char), MAX_NAME_LENGTH, file);
-
-	fclose(file);
+void printStack(Stack* stack, void (*print)(void*)) {
+    StackNode* currentNode = stack->top;
+    while (currentNode != NULL) {
+        print(currentNode->data);
+        currentNode = currentNode->next;
+    }
 }
 
-// Odczyt elementow stosu z dysku
-MY_STUDENT* loadStack(const char* filename) {
-	FILE* file = fopen(filename, "rb");
-	if (file == NULL) {
-		handleErrorMessage("Failed to open the file for reading");
-		return NULL;
-	}
-
-	MY_STUDENT* student = (MY_STUDENT*)malloc(sizeof(MY_STUDENT));
-	if (student == NULL) {
-		handleErrorMessage("Memory allocation failed");
-		fclose(file);
-		return NULL;
-	}
-
-	fread(student, sizeof(MY_STUDENT), 1, file);
-
-	student->surname = (char*)malloc(sizeof(char) * MAX_NAME_LENGTH);
-	if (student->surname == NULL) {
-		handleErrorMessage("Memory allocation failed");
-		free(student);
-		fclose(file);
-		return NULL;
-	}
-
-	fread(student->surname, sizeof(char), MAX_NAME_LENGTH, file);
-
-	fclose(file);
-	return student;
+static bool isEmpty(Stack* stack) {
+	return stack->top == NULL;
 }
 
-// Wyprowadzenie elementow stosu na monitor
-void printStack() {
-	if (top == NULL) {
-		printf("Stack is empty.\n");
+void saveStackToFile(Stack* stack, const char* filename, void (*saveData)(void* data, FILE* file)) {
+    if (stack == NULL || filename == NULL || saveData == NULL) {
+        handleErrorMessage("Invalid parameters in saveStackToFile");
+        return;
+    }
 
-		return;
-	}
+    FILE* file = fopen(filename, "wb");
+    if (file == NULL) {
+        handleErrorMessage("Error opening file in saveStackToFile");
+        return;
+    }
 
-	printf("Stack elements:\n");
-	StackNode* current = top;
-	while (current != NULL) {
-		printf("Surname: %s\n", current->student->surname);
-		printf("Birth year: %d\n", current->student->birthYear);
-		printf("Study field: %s\n\n", current->student->studyField);
-		current = current->next;
-	}
+    StackNode* current = stack->top;
+    while (current != NULL) {
+        saveData(current->data, file);
+        current = current->next;
+    }
+
+    fclose(file);
+}
+
+void loadStackFromFile(Stack* stack, const char* filename, void* (*loadData)(FILE* file)) {
+    if (stack == NULL || filename == NULL || loadData == NULL) {
+        handleErrorMessage("Invalid parameters in loadStackFromFile");
+        return;
+    }
+
+    FILE* file = fopen(filename, "rb");
+    if (file == NULL) {
+        handleErrorMessage("Error opening file in loadStackFromFile");
+        return;
+    }
+
+    Stack tempStack;
+    initStack(&tempStack);
+
+    while (1) {
+        void* data = loadData(file);
+        if (data == NULL) {
+            break;
+        }
+        push(&tempStack, data);
+    }
+
+    fclose(file);
+
+    while (!isEmpty(&tempStack)) {
+        void* data = pop(&tempStack);
+        push(stack, data);
+    }
+
+    freeStack(&tempStack);
 }

@@ -131,13 +131,13 @@
     <ClCompile Include="interface.cpp" />
     <ClCompile Include="JIPP_projekt.cpp" />
     <ClCompile Include="stack.cpp" />
-    <ClCompile Include="student.cpp" />
+    <ClCompile Include="data.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="error.h" />
     <ClInclude Include="interface.h" />
     <ClInclude Include="stack.h" />
-    <ClInclude Include="student.h" />
+    <ClInclude Include="data.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
