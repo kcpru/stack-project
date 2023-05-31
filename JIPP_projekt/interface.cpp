@@ -9,17 +9,16 @@
 #pragma warning(disable: 4996)
 
 void printMenu() {
-    printf("\033[47;30m  ====== MENU ======  \033[0m\n"); 
+    printf("\033[47;30m  ====== MENU ======  \033[0m\n");
     printf("1. Dodaj element do stosu\n");
     printf("2. Usun element ze stosu\n");
     printf("3. Znajdz element na stosie\n");
     printf("4. Wyswietl zawartosc stosu\n");
     printf("5. Zapisz zawartosc stosu do pliku\n");
     printf("6. Wczytaj zawartosc stosu z pliku\n");
-    printf("\033[31m0. Wyjscie\033[0m\n");  
+    printf("\033[31m0. Wyjscie\033[0m\n");
     printf("==================\n");
 }
-
 
 void stackInterface() {
     Stack stack;
@@ -36,7 +35,7 @@ void stackInterface() {
         case 1: {
             char name[100];
             int birthYear;
-            char studyField[100];
+            enum STUDY_FIELD studyField;
 
             printf("Podaj nazwisko studenta: ");
             fgets(name, sizeof(name), stdin);
@@ -46,9 +45,12 @@ void stackInterface() {
             scanf("%d", &birthYear);
             getchar();
 
-            printf("Podaj kierunek studiow: ");
-            fgets(studyField, sizeof(studyField), stdin);
-            studyField[strcspn(studyField, "\n")] = '\0';
+            printf("Podaj kierunek studiow (0-INFORMATYKA, 1-MATEMATYKA, 2-FIZYKA, 3-CHEMIA, 4-INNE): ");
+            int fieldChoice;
+            scanf("%d", &fieldChoice);
+            getchar();
+
+            studyField = (enum STUDY_FIELD)fieldChoice;
 
             MY_STUDENT* student = createStudent(name, birthYear, studyField);
             if (student != NULL) {
@@ -79,7 +81,7 @@ void stackInterface() {
                 printf("Znaleziono studenta na stosie:\n");
                 printf("Nazwisko: %s\n", foundStudent->name);
                 printf("Rok urodzenia: %d\n", foundStudent->birthYear);
-                printf("Kierunek studiow: %s\n", foundStudent->studyField);
+                printf("Kierunek studiow: %d\n", foundStudent->studyField);
             }
             else {
                 printf("Nie znaleziono studenta na stosie.\n");
