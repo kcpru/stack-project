@@ -13,11 +13,6 @@
 #define STYLE_INFO_MESSAGE "\033[36m"
 #define STYLE_RESET "\033[0m"
 
-static void print_menu();
-static void print_error_message(const char* message);
-static void print_success_message(const char* message);
-static void print_info_message(const char* message);
-static void print_input_field();
 void stack_interface();
 
 #endif

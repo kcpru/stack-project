@@ -19,17 +19,16 @@ static void print_menu() {
 	printf(STYLE_ERROR "[q]" STYLE_RESET STYLE_ERROR_MESSAGE " Quit" STYLE_RESET "\n");
 }
 
-
 static void print_error_message(const char* message) {
-	printf("\n" STYLE_ERROR_MESSAGE "%s" STYLE_RESET "\n", message);
+	printf(STYLE_ERROR_MESSAGE "%s" STYLE_RESET "\n", message);
 }
 
 static void print_success_message(const char* message) {
-	printf("\n" STYLE_SUCCESS_MESSAGE "%s" STYLE_RESET "\n", message);
+	printf(STYLE_SUCCESS_MESSAGE "%s" STYLE_RESET "\n", message);
 }
 
 static void print_info_message(const char* message) {
-	printf("\n" STYLE_INFO_MESSAGE "%s" STYLE_RESET "\n", message);
+	printf(STYLE_INFO_MESSAGE "%s" STYLE_RESET "\n", message);
 }
 
 static void print_input_field() {
@@ -86,8 +85,8 @@ void stack_interface() {
 				}
 
 				print_input_field();
-				int fieldChoice;
-				if (scanf_s("%d", &fieldChoice) != 1) {
+				int field_choice;
+				if (scanf_s("%d", &field_choice) != 1) {
 					print_error_message("Invalid input. Study field must be a number.");
 					int c;
 					while ((c = getchar()) != '\n' && c != EOF);
@@ -95,12 +94,12 @@ void stack_interface() {
 				}
 				getchar();
 
-				if (fieldChoice < 0 || fieldChoice >= STUDY_FIELD_COUNT) {
+				if (field_choice < 0 || field_choice >= STUDY_FIELD_COUNT) {
 					print_error_message("Invalid input. Study field number is out of range.");
 					break;
 				}
 
-				study_field = (enum STUDY_FIELD)fieldChoice;
+				study_field = (enum STUDY_FIELD)field_choice;
 
 				MY_STUDENT* student = create_student(name, birth_year, study_field);
 				if (student != NULL) {
@@ -120,7 +119,8 @@ void stack_interface() {
 			}
 			case 'f': {
 				char name[MAX_STUDENT_NAME_LENGTH];
-				printf("Enter student's last name to search for: ");
+				printf("Enter student's last name to search for\n"); 
+				print_input_field();
 				fgets(name, sizeof(name), stdin);
 				name[strcspn(name, "\n")] = '\0';
 
@@ -147,7 +147,8 @@ void stack_interface() {
 			}
 			case 's': {
 				char filename[MAX_FILENAME_LENGTH];
-				printf("Enter the filename to save the stack: ");
+				printf("Enter the filename to save the stack\n");
+				print_input_field();
 				fgets(filename, sizeof(filename), stdin);
 				filename[strcspn(filename, "\n")] = '\0';
 
@@ -162,7 +163,8 @@ void stack_interface() {
 			}
 			case 'l': {
 				char filename[MAX_FILENAME_LENGTH];
-				printf("Enter the filename to load the stack from: ");
+				printf("Enter the filename to load the stack from\n");
+				print_input_field();
 				fgets(filename, sizeof(filename), stdin);
 				filename[strcspn(filename, "\n")] = '\0';
 

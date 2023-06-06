@@ -4,8 +4,6 @@
 #include "stack.h"
 #include "error.h"
 
-#pragma warning(disable:4996)
-
 void init_stack(Stack* stack) {
 	stack->top = NULL;
 }
