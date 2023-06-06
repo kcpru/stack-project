@@ -1,138 +1,195 @@
 ﻿#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+
 #include "interface.h"
 #include "data.h"
 #include "stack.h"
 #include "error.h"
 
-#pragma warning(disable: 4996)
-
-// Constants
-#define MAX_FILENAME_LENGTH 100
-#define MAX_STUDENT_NAME_LENGTH 100
-
-// Colors
-#define STYLE_INTERFACE "\033[47;30m"
-#define STYLE_ERROR "\033[47;31m"
-#define STYLE_ERROR_MESSAGE "\033[31m"
-#define STYLE_SUCCESS "\033[42;30m"
-#define STYLE_SUCCESS_MESSAGE "\033[32m"
-#define STYLE_INFO "\033[43;30m"
-#define STYLE_INFO_MESSAGE "\033[33m"
-#define STYLE_RESET "\033[0m"
-
-void printMenu() {
-	printf(STYLE_INTERFACE "         Interface         \n" STYLE_RESET);
+static void print_menu() {
+	printf(STYLE_INTERFACE "         Interface         " STYLE_RESET "\n");
 	printf(STYLE_INTERFACE "[a]" STYLE_RESET " Add student to stack\n");
 	printf(STYLE_INTERFACE "[r]" STYLE_RESET " Remove student from stack\n");
 	printf(STYLE_INTERFACE "[f]" STYLE_RESET " Find student on stack\n");
 	printf(STYLE_INTERFACE "[p]" STYLE_RESET " Print stack elements\n");
 	printf(STYLE_INTERFACE "[s]" STYLE_RESET " Save stack to file\n");
 	printf(STYLE_INTERFACE "[l]" STYLE_RESET " Load stack from file\n");
-	printf(STYLE_ERROR "[q]" STYLE_RESET STYLE_ERROR_MESSAGE " Quit\n" STYLE_RESET);
+	printf(STYLE_ERROR "[q]" STYLE_RESET STYLE_ERROR_MESSAGE " Quit" STYLE_RESET "\n");
 }
 
-void stackInterface() {
+
+static void print_error_message(const char* message) {
+	printf("\n" STYLE_ERROR_MESSAGE "%s" STYLE_RESET "\n", message);
+}
+
+static void print_success_message(const char* message) {
+	printf("\n" STYLE_SUCCESS_MESSAGE "%s" STYLE_RESET "\n", message);
+}
+
+static void print_info_message(const char* message) {
+	printf("\n" STYLE_INFO_MESSAGE "%s" STYLE_RESET "\n", message);
+}
+
+static void print_input_field() {
+	printf(STYLE_SUCCESS_MESSAGE " > " STYLE_RESET);
+}
+
+void stack_interface() {
 	Stack stack;
-	initStack(&stack);
+	init_stack(&stack);
 
 	char choice;
 	do {
-		printMenu();
-		printf("\nSelect an option:\n " STYLE_SUCCESS_MESSAGE "> " STYLE_RESET);
-		scanf("%c", &choice);
+		print_menu();
+		printf("\nSelect an option\n");
+		print_input_field();
+		scanf_s("%c", &choice);
 		getchar();
 		printf("\n");
 
-		switch (choice) {
-		case 'a': {
-			char name[MAX_STUDENT_NAME_LENGTH];
-			int birthYear;
-			enum STUDY_FIELD studyField;
+		if (isalpha(choice)) {
+			choice = tolower(choice);
 
-			printf("Enter student's last name: ");
-			fgets(name, sizeof(name), stdin);
-			name[strcspn(name, "\n")] = '\0';
+			switch (choice) {
+			case 'a': {
+				char name[MAX_STUDENT_NAME_LENGTH];
+				int birth_year;
+				enum STUDY_FIELD study_field;
 
-			printf("Enter birth year: ");
-			scanf("%d", &birthYear);
-			getchar();
+				printf("Enter student's last name\n");
+				print_input_field();
+				fgets(name, sizeof(name), stdin);
+				name[strcspn(name, "\n")] = '\0';
 
-			printf("Enter study field (0-INFORMATICS, 1-MATHEMATICS, 2-PHYSICS, 3-CHEMISTRY, 4-OTHER): ");
-			int fieldChoice;
-			scanf("%d", &fieldChoice);
-			getchar();
+				if (strlen(name) > MAX_STUDENT_NAME_LENGTH - 1) {
+					print_error_message("Invalid input. Last name is too long.");
+					int c;
+					while ((c = getchar()) != '\n' && c != EOF);
+					break;
+				}
 
-			studyField = (enum STUDY_FIELD)fieldChoice;
+				printf("Enter birth year\n");
+				print_input_field();
+				if (scanf_s("%d", &birth_year) != 1) {
+					print_error_message("Invalid input. Birth year must be a number.");
+					int c;
+					while ((c = getchar()) != '\n' && c != EOF);
+					break;
+				}
+				getchar();
 
-			MY_STUDENT* student = createStudent(name, birthYear, studyField);
-			if (student != NULL) {
-				push(&stack, student);
-				printf("Student added to the stack.\n");
+				printf("Enter study field\n");
+				for (int i = 0; i < STUDY_FIELD_COUNT; i++) {
+					printf(STYLE_INFO_MESSAGE "[%d]" STYLE_RESET " %s\n", i, study_field_names[i]);
+				}
+
+				print_input_field();
+				int fieldChoice;
+				if (scanf_s("%d", &fieldChoice) != 1) {
+					print_error_message("Invalid input. Study field must be a number.");
+					int c;
+					while ((c = getchar()) != '\n' && c != EOF);
+					break;
+				}
+				getchar();
+
+				if (fieldChoice < 0 || fieldChoice >= STUDY_FIELD_COUNT) {
+					print_error_message("Invalid input. Study field number is out of range.");
+					break;
+				}
+
+				study_field = (enum STUDY_FIELD)fieldChoice;
+
+				MY_STUDENT* student = create_student(name, birth_year, study_field);
+				if (student != NULL) {
+					push(&stack, student);
+					print_success_message("Student added to the stack.");
+				}
+
+				break;
 			}
-			break;
-		}
-		case 'r': {
-			MY_STUDENT* student = (MY_STUDENT*)pop(&stack);
-			if (student != NULL) {
-				destroyStudent(student);
-				printf(STYLE_SUCCESS_MESSAGE "Student removed from the stack.\n" STYLE_RESET);
+			case 'r': {
+				MY_STUDENT* student = (MY_STUDENT*)pop(&stack);
+				if (student != NULL) {
+					destroy_student(student);
+					print_success_message("Student removed from the stack.");
+				}
+				break;
 			}
-			break;
-		}
-		case 'f': {
-			char name[MAX_STUDENT_NAME_LENGTH];
-			printf("Enter student's last name to search for: ");
-			fgets(name, sizeof(name), stdin);
-			name[strcspn(name, "\n")] = '\0';
+			case 'f': {
+				char name[MAX_STUDENT_NAME_LENGTH];
+				printf("Enter student's last name to search for: ");
+				fgets(name, sizeof(name), stdin);
+				name[strcspn(name, "\n")] = '\0';
 
-			MY_STUDENT targetStudent;
-			targetStudent.name = name;
+				MY_STUDENT target_student;
+				target_student.name = name;
 
-			MY_STUDENT* foundStudent = (MY_STUDENT*)find(&stack, compareStudentsByField, &targetStudent);
-			if (foundStudent != NULL) {
-				printf(STYLE_SUCCESS_MESSAGE "Student found on the stack:\n");
-				printf(STYLE_INFO_MESSAGE "| " STYLE_RESET "Last Name: %s\n", foundStudent->name);
-				printf(STYLE_INFO_MESSAGE "| " STYLE_RESET "Birth Year: %d\n", foundStudent->birthYear);
-				printf(STYLE_INFO_MESSAGE "| " STYLE_RESET "Study Field: %d\n", foundStudent->studyField);
+				Stack found_students;
+				init_stack(&found_students);
+				search_in_stack(&stack, compare_students_by_field, &target_student, &found_students);
+
+				if (is_empty(&found_students)) {
+					print_error_message("Student not found on the stack.");
+				}
+				else {
+					print_success_message("Student found on the stack:");
+					print_stack(&found_students, print_student);
+				}
+				break;
 			}
-			else {
-				printf(STYLE_ERROR_MESSAGE "Student not found on the stack.\n" STYLE_RESET);
+			case 'p': {
+				print_success_message("Stack contents:");
+				print_stack(&stack, (void (*)(void*))print_student);
+				break;
 			}
-			break;
+			case 's': {
+				char filename[MAX_FILENAME_LENGTH];
+				printf("Enter the filename to save the stack: ");
+				fgets(filename, sizeof(filename), stdin);
+				filename[strcspn(filename, "\n")] = '\0';
+
+				int result = save_stack_to_file(&stack, filename, save_student);
+				if (result) {
+					print_success_message("Stack successfully saved to file.");
+				}
+				else {
+					print_error_message("Error saving stack to file.");
+				}
+				break;
+			}
+			case 'l': {
+				char filename[MAX_FILENAME_LENGTH];
+				printf("Enter the filename to load the stack from: ");
+				fgets(filename, sizeof(filename), stdin);
+				filename[strcspn(filename, "\n")] = '\0';
+
+				int result = load_stack_from_file(&stack, filename, load_student);
+				if (result) {
+					print_success_message("Stack successfully loaded from file.");
+				}
+				else {
+					print_error_message("Error loading stack from file.");
+				}
+				break;
+			}
+
+			case 'q':
+				print_info_message("Program terminated.");
+				break;
+			default:
+				print_error_message("Invalid choice. Please select one of the available options.");
+				break;
+			}
 		}
-		case 'p': {
-			printf(STYLE_SUCCESS_MESSAGE "Stack contents:\n" STYLE_RESET);
-			printStack(&stack, (void (*)(void*))printStudent);
-			break;
-		}
-		case 's': {
-			char filename[MAX_FILENAME_LENGTH];
-			printf("Enter the filename to save the stack: ");
-			fgets(filename, sizeof(filename), stdin);
-			filename[strcspn(filename, "\n")] = '\0';
-			saveStackToFile(&stack, filename, saveStudent);
-			break;
-		}
-		case 'l': {
-			char filename[MAX_FILENAME_LENGTH];
-			printf("Enter the filename to load the stack from: ");
-			fgets(filename, sizeof(filename), stdin);
-			filename[strcspn(filename, "\n")] = '\0';
-			loadStackFromFile(&stack, filename, loadStudent);
-			break;
-		}
-		case 'q':
-			printf(STYLE_INFO "Program terminated.\n" STYLE_RESET);
-			break;
-		default:
-			printf(STYLE_ERROR_MESSAGE "Invalid choice. Please try again.\n" STYLE_RESET);
-			break;
+		else {
+			print_error_message("Invalid option. Please enter a letter.");
 		}
 
 		printf("\n");
 	} while (choice != 'q');
 
-	freeStack(&stack);
+	free_stack(&stack, (dealloc_node_fn)destroy_student);
 }

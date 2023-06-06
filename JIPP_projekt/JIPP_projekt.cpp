@@ -1,7 +1,7 @@
 #include "interface.h"
 
 int main() {
-    stackInterface();
+    stack_interface();
 
     return 0;
 }

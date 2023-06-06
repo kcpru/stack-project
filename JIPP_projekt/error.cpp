@@ -1,11 +1,28 @@
 #include <stdio.h>
+#include <stdlib.h>
+
 #include "error.h"
+#include "interface.h"
 
-// Colors
-#define STYLE_ERROR "\033[41;30m"
-#define STYLE_ERROR_MESSAGE "\033[31m"
-#define STYLE_RESET "\033[0m"
+//SF Pokazywale bardziej elegentny sposob.
+void handle_error(int errorCode) {
+	switch (errorCode) {
+	case ERROR_MEMORY_ALLOCATION:
+		printf("Error: Failed to allocate memory\n");
+		break;
+	case ERROR_EMPTY_STACK:
+		printf("Error: The stack is empty\n");
+		break;
+	case ERROR_INVALID_PARAMETERS:
+		printf("Error: Invalid parameters\n");
+		break;
+	case ERROR_FILE_OPEN:
+		printf("Error: Failed to open the file\n");
+		break;
+	default:
+		printf("Error: Unknown error\n");
+		exit(errorCode); //SF przerywanie brutalne - brak wywolania globalnego dealokatora.
 
-void handleErrorMessage(const char* message) {
-	printf(STYLE_ERROR "Error: " STYLE_RESET " %s\n", message);
+		break;
+	}
 }
