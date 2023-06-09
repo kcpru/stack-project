@@ -1,28 +1,32 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 
 #include "error.h"
 #include "interface.h"
 
-//SF Pokazywale bardziej elegentny sposob.
-void handle_error(int errorCode) {
-	switch (errorCode) {
-	case ERROR_MEMORY_ALLOCATION:
-		printf("Error: Failed to allocate memory\n");
-		break;
-	case ERROR_EMPTY_STACK:
-		printf("Error: The stack is empty\n");
-		break;
-	case ERROR_INVALID_PARAMETERS:
-		printf("Error: Invalid parameters\n");
-		break;
-	case ERROR_FILE_OPEN:
-		printf("Error: Failed to open the file\n");
-		break;
-	default:
-		printf("Error: Unknown error\n");
-		exit(errorCode); //SF przerywanie brutalne - brak wywolania globalnego dealokatora.
+static const char* ErrorMessages[] = {
+	"Unknown error",                // 0 - Nieznany błąd
+	"Failed to allocate memory",    // 1 - Nie udało się zaalokować pamięci
+	"The stack is empty",           // 2 - Stos jest pusty
+	"Invalid parameters",           // 3 - Nieprawidłowe parametry
+	"Failed to open the file"       // 4 - Nie udało się otworzyć pliku
+};
 
-		break;
+// Obsługuje błąd i wyświetla odpowiedni komunikat
+void handle_error(errno_t error) {
+	const char* message = error_message(error);
+	printf(STYLE_ERROR_MESSAGE "Error: %s" STYLE_RESET "\n", message);
+
+	// Gdy wystąpi nieznany błąd, kończy działanie programu
+	if (error == 0) {
+		exit(error);
 	}
+}
+
+// Zwraca komunikat na podstawie kodu błędu
+const char* error_message(errno_t error) {
+	if (error <= 0 || error >= ERRORS_COUNT) {
+		return ErrorMessages[ERROR_UNKNOWN];
+	}
+	return ErrorMessages[(int)error];
 }
