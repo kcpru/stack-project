@@ -22,7 +22,7 @@ Follow the on-screen menu prompts to interact with the program and perform diffe
 The project files are organized as follows:
 
 - `main.c`: Contains the main entry point of the program.
-- `data.`h and `data.c`: Define and implement the student data structure and related functions.
+- `data.h` and `data.c`: Define and implement the student data structure and related functions.
 - `stack.h` and `stack.c`: Define and implement the stack data structure and related functions.
 - `error.h` and `error.c`: Define and handle error messages.
 - `interface.h` and `interface.c`: Define and display the user interface menu.
